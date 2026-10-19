@@ -1,0 +1,29 @@
+# variables de entorno
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# react o node
+node_modules/
+dist/
+coverage/
+
+# archivos locales
+*.log
+.DS_Store
+Thumbs.db
+
+# datos privados y archivos generados
+data/
+uploads/
+backups/
