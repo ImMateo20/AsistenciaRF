@@ -1,0 +1,25 @@
+:root {
+    font-family: "Inter", sans-serif;
+    color: #203c36;
+    background: #f8fbfa;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  
+    --color-primary: #1abc9c;
+    --color-primary-hover: #17aa8d;
+    --color-text: #203c36;
+    --color-muted: #637970;
+    --color-sidebar: #edf9f6;
+    --color-selected: #9bd6cd;
+    --color-surface: #ffffff;
+    --color-background: #f8fbfa;
+    --color-border: #dfe9e5;
+  
+    --color-edit: #e0f5ef;
+    --color-edit-hover: #c9ebe1;
+    --color-edit-text: #216657;
+    --color-edit-border: #b8ded3;
+  
+    --shadow-soft: 0 3px 12px rgb(26 64 51 / 7%);
+  }
