@@ -1,10 +1,12 @@
 import { Navigate, Route, Routes } from "react-router";
 
-import Button from "./components/Button";
 import ProtectedRoute from "./components/ProtectedRoute";
 import useAuth from "./context/useAuth";
 import AppLayout from "./layouts/AppLayout";
 import LoginPage from "./pages/LoginPage";
+import ProfesoresPage from "./pages/ProfesoresPage";
+import ProfesorCrearPage from "./pages/ProfesorCrearPage";
+import ProfesorEditarPage from "./pages/ProfesorEditarPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -22,26 +24,6 @@ function Inicio() {
       }
       replace
     />
-  );
-}
-
-function ProfesoresBase() {
-  return (
-    <section className="page">
-      <header>
-        <h1 className="page__title">Profesores</h1>
-
-        <p className="page__description">
-          Gestiona la información de tu institución.
-        </p>
-      </header>
-
-      <div className="page__body" />
-
-      <footer className="page__actions">
-        <Button disabled>+ Registrar profesor</Button>
-      </footer>
-    </section>
   );
 }
 
@@ -69,7 +51,12 @@ export default function App() {
         <Route path="/admin" element={<AppLayout />}>
           <Route index element={<Navigate to="profesores" replace />} />
 
-          <Route path="profesores" element={<ProfesoresBase />} />
+          <Route path="profesores" element={<ProfesoresPage />} />
+          <Route path="profesores/registrar" element={<ProfesorCrearPage />} />
+          <Route
+            path="profesores/:profesorId/editar"
+            element={<ProfesorEditarPage />}
+          />
         </Route>
       </Route>
 

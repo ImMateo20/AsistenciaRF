@@ -391,3 +391,45 @@ def test_registro_fallido_no_deja_cuenta_huerfana(
 
         assert cuenta is None
         assert profesor is None
+
+
+def test_consultar_profesor_por_id(entorno_profesores):
+    entorno = entorno_profesores
+
+    respuesta = entorno["cliente"].get(
+        f"/profesores/{entorno['profesor_id']}",
+        headers=entorno["admin"],
+    )
+
+    assert respuesta.status_code == 200
+
+    datos = respuesta.json()
+
+    assert datos["id"] == entorno["profesor_id"]
+    assert datos["matricula"] == "1020301"
+    assert "password" not in datos
+    assert "password_hash" not in datos
+
+
+def test_consultar_profesor_inexistente(entorno_profesores):
+    entorno = entorno_profesores
+
+    respuesta = entorno["cliente"].get(
+        "/profesores/99999",
+        headers=entorno["admin"],
+    )
+
+    assert respuesta.status_code == 404
+
+
+def test_profesor_no_puede_consultar_otro_perfil(
+    entorno_profesores,
+):
+    entorno = entorno_profesores
+
+    respuesta = entorno["cliente"].get(
+        f"/profesores/{entorno['profesor_id']}",
+        headers=entorno["profesor"],
+    )
+
+    assert respuesta.status_code == 403
