@@ -27,3 +27,6 @@ Thumbs.db
 data/
 uploads/
 backups/
+
+# Modelos faciales descargados
+/backend/modelos_faciales/*.onnx
