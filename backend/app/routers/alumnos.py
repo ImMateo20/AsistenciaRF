@@ -1,6 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Path,
+    Query,
+    UploadFile,
+    status,
+)
+from pydantic import ValidationError
+
+from app.services.facial import MAX_BYTES_IMAGEN
 from sqlalchemy.orm import Session
 
 from app.database import obtener_db
@@ -47,10 +60,53 @@ def consultar_alumno(
     status_code=status.HTTP_201_CREATED,
 )
 def crear_alumno(
-    datos: AlumnoCrear,
+    nombre: Annotated[
+        str,
+        Form(min_length=1, max_length=150),
+    ],
+    matricula: Annotated[
+        str,
+        Form(min_length=1, max_length=20),
+    ],
+    imagenes: Annotated[list[UploadFile], File()],
     db: Annotated[Session, Depends(obtener_db)],
 ):
-    return registrar_alumno(db, datos)
+    try:
+        if len(imagenes) != 3:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Debes enviar tres capturas del rostro",
+            )
+
+        try:
+            datos = AlumnoCrear(
+                nombre=nombre,
+                matricula=matricula,
+            )
+        except ValidationError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Revisa el nombre y la matrícula del alumno",
+            ) from error
+
+        contenidos = []
+
+        for numero, imagen in enumerate(imagenes, start=1):
+            contenido = imagen.file.read(MAX_BYTES_IMAGEN + 1)
+
+            if len(contenido) > MAX_BYTES_IMAGEN:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"La captura {numero} supera los 5 MB",
+                )
+
+            contenidos.append(contenido)
+
+        return registrar_alumno(db, datos, contenidos)
+
+    finally:
+        for imagen in imagenes:
+            imagen.file.close()
 
 
 @router.patch("/{alumno_id}", response_model=AlumnoSalida)
