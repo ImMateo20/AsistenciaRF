@@ -11,7 +11,7 @@ const opcionesAdministrador = [
 
 const opcionesProfesor = [{ label: "Clases" }, { label: "Asistencias" }];
 
-export default function Sidebar({ rol }) {
+export default function Sidebar({ rol, children }) {
   const esAdministrador = rol === "administrador";
 
   const opciones = esAdministrador ? opcionesAdministrador : opcionesProfesor;
@@ -50,6 +50,7 @@ export default function Sidebar({ rol }) {
           )
         )}
       </nav>
+      <div className="sidebar__footer">{children}</div>
     </aside>
   );
 }
