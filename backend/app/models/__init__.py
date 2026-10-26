@@ -8,6 +8,7 @@ from app.models.inscripcion_clase import InscripcionClase
 from app.models.periodo import PeriodoEscolar
 from app.models.profesor import Profesor
 from app.models.sesion_clase import SesionClase
+from app.models.token_revocado import TokenRevocado
 from app.models.usuario import Usuario
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "PeriodoEscolar",
     "Profesor",
     "SesionClase",
+    "TokenRevocado",
     "Usuario",
 ]
