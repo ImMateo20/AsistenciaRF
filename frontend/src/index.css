@@ -367,3 +367,102 @@ a {
     font-size: 26px;
   }
 }
+
+
+
+/* PROFESORESSSS */
+
+.profesores__list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profesor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px auto;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  border-radius: 10px;
+}
+
+.profesor-row__identity {
+  min-width: 0;
+}
+
+.profesor-row__name {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.profesor-row__matricula {
+  overflow-wrap: anywhere;
+  font-size: 18px;
+}
+
+.profesor-row__status {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.profesores__feedback {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 24px;
+}
+
+@media (max-width: 760px) {
+  .profesor-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profesor-row__matricula {
+    grid-column: 1;
+    font-size: 16px;
+  }
+
+  .profesor-row .button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+
+/* PROFE CREARRRR */
+
+.profesor-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.profesor-form__fields {
+  width: 100%;
+  max-width: 720px;
+}
+
+.message--success {
+  background: #e4f6ee;
+  color: #216657;
+}
+
+.profesores__notice {
+  margin-bottom: 20px;
+}

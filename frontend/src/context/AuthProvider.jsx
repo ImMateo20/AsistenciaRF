@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { AuthContext } from "./AuthContext";
 import {
@@ -52,9 +52,9 @@ export default function AuthProvider({ children }) {
     setSesion(null);
   }
 
-  function limpiarSesion() {
+  const limpiarSesion = useCallback(() => {
     setSesion(null);
-  }
+  }, []);
 
   return (
     <AuthContext.Provider

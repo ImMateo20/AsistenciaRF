@@ -108,6 +108,35 @@ def registrar_profesor(
         raise
 
 
+def obtener_profesor(
+    db: Session,
+    profesor_id: int,
+) -> ProfesorSalida:
+    consulta = (
+        select(Profesor, Usuario)
+        .join(Usuario, Profesor.usuario_id == Usuario.id)
+        .where(Profesor.id == profesor_id)
+    )
+
+    resultado = db.execute(consulta).first()
+
+    if resultado is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profesor no encontrado",
+        )
+
+    profesor, usuario = resultado
+
+    return ProfesorSalida(
+        id=profesor.id,
+        nombre=profesor.nombre,
+        matricula=profesor.matricula,
+        correo=usuario.correo,
+        activo=profesor.activo and usuario.activo,
+    )
+
+
 def editar_profesor(
     db: Session,
     profesor_id: int,

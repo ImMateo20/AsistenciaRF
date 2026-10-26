@@ -7,6 +7,7 @@ from app.database import obtener_db
 from app.dependencies.auth import requerir_administrador
 from app.schemas.profesor import ProfesorCrear, ProfesorEditar, ProfesorSalida
 from app.services.profesores import (
+    obtener_profesor,
     editar_profesor,
     listar_profesores,
     registrar_profesor,
@@ -47,3 +48,11 @@ def actualizar_profesor(
     db: Annotated[Session, Depends(obtener_db)],
 ):
     return editar_profesor(db, profesor_id, datos)
+
+
+@router.get("/{profesor_id}", response_model=ProfesorSalida)
+def consultar_profesor(
+    profesor_id: Annotated[int, Path(ge=1)],
+    db: Annotated[Session, Depends(obtener_db)],
+):
+    return obtener_profesor(db, profesor_id)
