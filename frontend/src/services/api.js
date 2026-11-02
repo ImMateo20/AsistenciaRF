@@ -10,11 +10,13 @@ export async function apiRequest(
   path,
   { method = "GET", body, token, signal } = {}
 ) {
+  const esFormulario = body instanceof FormData;
+
   const headers = {
     Accept: "application/json",
   };
 
-  if (body !== undefined) {
+  if (body !== undefined && !esFormulario) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -28,7 +30,12 @@ export async function apiRequest(
     response = await fetch(`/api${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined
+          ? undefined
+          : esFormulario
+          ? body
+          : JSON.stringify(body),
       signal,
       cache: "no-store",
     });

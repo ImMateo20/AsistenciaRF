@@ -1,6 +1,6 @@
 import { apiRequest } from "./api";
 
-export const TAMANO_PAGINA = 20;
+export const TAMANO_PAGINA = 5;
 
 export async function consultarProfesores(token, pagina, signal) {
   const parametros = new URLSearchParams({
