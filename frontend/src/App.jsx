@@ -7,6 +7,8 @@ import LoginPage from "./pages/LoginPage";
 import ProfesoresPage from "./pages/ProfesoresPage";
 import ProfesorCrearPage from "./pages/ProfesorCrearPage";
 import ProfesorEditarPage from "./pages/ProfesorEditarPage";
+import AlumnosPage from "./pages/AlumnosPage";
+import AlumnoCrearPage from "./pages/AlumnoCrearPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -57,6 +59,8 @@ export default function App() {
             path="profesores/:profesorId/editar"
             element={<ProfesorEditarPage />}
           />
+          <Route path="alumnos" element={<AlumnosPage />} />
+          <Route path="alumnos/registrar" element={<AlumnoCrearPage />} />
         </Route>
       </Route>
 
