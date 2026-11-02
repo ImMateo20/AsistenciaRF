@@ -1,3 +1,5 @@
+const URL_API = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
+
 export class ApiError extends Error {
   constructor(message, status) {
     super(message);
@@ -27,7 +29,7 @@ export async function apiRequest(
   let response;
 
   try {
-    response = await fetch(`/api${path}`, {
+    response = await fetch(`${URL_API}${path}`, {
       method,
       headers,
       body:

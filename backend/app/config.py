@@ -27,6 +27,8 @@ class Configuracion(BaseSettings):
         ge=1,
         le=120,
     )
+    
+    FRONTEND_URL: str = ""
 
 
 configuracion = Configuracion()
