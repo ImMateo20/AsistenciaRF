@@ -140,7 +140,12 @@ export default function AlumnosPage() {
                         {alumno.matricula}
                       </span>
 
-                      <Button variant="edit" disabled>
+                      <Button
+                        variant="edit"
+                        onClick={() =>
+                          navigate(`/admin/alumnos/${alumno.id}/editar`)
+                        }
+                      >
                         Editar
                       </Button>
                     </Card>

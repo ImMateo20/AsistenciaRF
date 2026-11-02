@@ -116,3 +116,59 @@ def actualizar_alumno(
     db: Annotated[Session, Depends(obtener_db)],
 ):
     return editar_alumno(db, alumno_id, datos)
+
+
+@router.patch(
+    "/{alumno_id}/con-rostro",
+    response_model=AlumnoSalida,
+)
+def actualizar_alumno_con_rostro(
+    alumno_id: Annotated[int, Path(ge=1)],
+    nombre: Annotated[str, Form(min_length=1, max_length=150)],
+    matricula: Annotated[str, Form(min_length=1, max_length=20)],
+    activo: Annotated[bool, Form()],
+    imagenes: Annotated[list[UploadFile], File()],
+    db: Annotated[Session, Depends(obtener_db)],
+):
+    try:
+        if len(imagenes) != 3:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Debes enviar tres capturas del rostro",
+            )
+
+        try:
+            datos = AlumnoEditar(
+                nombre=nombre,
+                matricula=matricula,
+                activo=activo,
+            )
+        except ValidationError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Revisa los datos del alumno",
+            ) from error
+
+        contenidos = []
+
+        for numero, imagen in enumerate(imagenes, start=1):
+            contenido = imagen.file.read(MAX_BYTES_IMAGEN + 1)
+
+            if len(contenido) > MAX_BYTES_IMAGEN:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"La captura {numero} supera los 5 MB",
+                )
+
+            contenidos.append(contenido)
+
+        return editar_alumno(
+            db,
+            alumno_id,
+            datos,
+            imagenes=contenidos,
+        )
+
+    finally:
+        for imagen in imagenes:
+            imagen.file.close()

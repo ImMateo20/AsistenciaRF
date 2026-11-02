@@ -7,6 +7,7 @@ from app.services.facial import (
     obtener_motor_facial,
     validar_coherencia_capturas,
 )
+from app.utils.fechas import obtener_fecha_utc
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -54,28 +55,13 @@ def obtener_alumno(
     return AlumnoSalida.model_validate(alumno)
 
 
-def registrar_alumno(
-    db: Session,
-    datos: AlumnoCrear,
-    imagenes: list[bytes],
-) -> AlumnoSalida:
+def procesar_capturas(imagenes: list[bytes]) -> list[list[float]]:
     if len(imagenes) != 3:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Se necesitan tres capturas del rostro",
         )
 
-    matricula_existente = db.scalar(
-        select(Alumno.id).where(Alumno.matricula == datos.matricula)
-    )
-
-    if matricula_existente is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="La matrícula ya está registrada",
-        )
-
-    # Procesamos todas las imágenes antes de crear al alumno
     representaciones = []
 
     try:
@@ -105,6 +91,33 @@ def registrar_alumno(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),
         ) from error
+
+    return representaciones
+
+
+def registrar_alumno(
+    db: Session,
+    datos: AlumnoCrear,
+    imagenes: list[bytes],
+) -> AlumnoSalida:
+    if len(imagenes) != 3:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Se necesitan tres capturas del rostro",
+        )
+
+    matricula_existente = db.scalar(
+        select(Alumno.id).where(Alumno.matricula == datos.matricula)
+    )
+
+    if matricula_existente is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La matrícula ya está registrada",
+        )
+
+    # Procesamos todas las imágenes antes de crear al alumno
+    representaciones = procesar_capturas(imagenes)
 
     try:
         alumno = Alumno(
@@ -156,6 +169,7 @@ def editar_alumno(
     db: Session,
     alumno_id: int,
     datos: AlumnoEditar,
+    imagenes: list[bytes] | None = None,
 ) -> AlumnoSalida:
     alumno = buscar_alumno(db, alumno_id)
     cambios = datos.model_dump(exclude_unset=True)
@@ -174,7 +188,12 @@ def editar_alumno(
                 detail="La matrícula ya está registrada",
             )
 
+    representaciones = procesar_capturas(imagenes) if imagenes is not None else None
+
     try:
+        # Serializa las actualizaciones del mismo alumno.
+        db.refresh(alumno, with_for_update=True)
+
         if "nombre" in cambios:
             alumno.nombre = cambios["nombre"]
 
@@ -183,6 +202,32 @@ def editar_alumno(
 
         if "activo" in cambios:
             alumno.activo = cambios["activo"]
+
+        if representaciones is not None:
+            rostros = db.scalars(
+                select(RostroAlumno).where(RostroAlumno.alumno_id == alumno.id)
+            ).all()
+
+            rostros_por_numero = {rostro.numero_muestra: rostro for rostro in rostros}
+
+            fecha_actualizacion = obtener_fecha_utc()
+
+            for numero, representacion in enumerate(
+                representaciones,
+                start=1,
+            ):
+                rostro = rostros_por_numero.get(numero)
+
+                if rostro is None:
+                    rostro = RostroAlumno(
+                        alumno_id=alumno.id,
+                        numero_muestra=numero,
+                    )
+                    db.add(rostro)
+
+                rostro.representacion = representacion
+                rostro.version_modelo = VERSION_MODELO
+                rostro.fecha_registro = fecha_actualizacion
 
         db.flush()
 

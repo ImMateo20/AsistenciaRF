@@ -23,6 +23,21 @@ export default function useCamara() {
     };
   }, []);
 
+  function desactivarCamara() {
+    solicitudRef.current += 1;
+
+    detenerFlujo(flujoRef.current);
+    flujoRef.current = null;
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    setActiva(false);
+    setCargando(false);
+    setError("");
+  }
+
   async function activarCamara(dispositivoId = "") {
     const solicitud = ++solicitudRef.current;
 
@@ -162,5 +177,6 @@ export default function useCamara() {
     cargando,
     error,
     activarCamara,
+    desactivarCamara,
   };
 }

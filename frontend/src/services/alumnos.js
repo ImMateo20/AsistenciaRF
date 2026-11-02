@@ -51,3 +51,32 @@ export function editarAlumno({ alumnoId, datos, token }) {
     token,
   });
 }
+
+export function editarAlumnoConRostro({
+  alumnoId,
+  nombre,
+  matricula,
+  activo,
+  capturas,
+  token,
+}) {
+  if (!Array.isArray(capturas) || capturas.length !== 3) {
+    throw new Error("Debes tomar tres capturas del rostro.");
+  }
+
+  const formulario = new FormData();
+
+  formulario.append("nombre", nombre.trim());
+  formulario.append("matricula", matricula.trim());
+  formulario.append("activo", String(activo));
+
+  capturas.forEach((captura, indice) => {
+    formulario.append("imagenes", captura, `captura-${indice + 1}.jpg`);
+  });
+
+  return apiRequest(`/alumnos/${alumnoId}/con-rostro`, {
+    method: "PATCH",
+    body: formulario,
+    token,
+  });
+}
