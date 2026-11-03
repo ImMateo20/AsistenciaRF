@@ -10,6 +10,8 @@ import ProfesorEditarPage from "./pages/ProfesorEditarPage";
 import AlumnosPage from "./pages/AlumnosPage";
 import AlumnoCrearPage from "./pages/AlumnoCrearPage";
 import AlumnoEditarPage from "./pages/AlumnoEditarPage";
+import AsignaturasPage from "./pages/AsignaturasPage";
+import AsignaturaFormularioPage from "./pages/AsignaturaFormularioPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -56,10 +58,25 @@ export default function App() {
 
           <Route path="profesores" element={<ProfesoresPage />} />
           <Route path="profesores/registrar" element={<ProfesorCrearPage />} />
-          <Route path="profesores/:profesorId/editar" element={<ProfesorEditarPage />} />
+          <Route
+            path="profesores/:profesorId/editar"
+            element={<ProfesorEditarPage />}
+          />
           <Route path="alumnos" element={<AlumnosPage />} />
           <Route path="alumnos/registrar" element={<AlumnoCrearPage />} />
-          <Route path="alumnos/:alumnoId/editar" element={<AlumnoEditarPage />} />
+          <Route
+            path="alumnos/:alumnoId/editar"
+            element={<AlumnoEditarPage />}
+          />
+          <Route path="asignaturas" element={<AsignaturasPage />} />
+          <Route
+            path="asignaturas/crear"
+            element={<AsignaturaFormularioPage />}
+          />
+          <Route
+            path="asignaturas/:asignaturaId/editar"
+            element={<AsignaturaFormularioPage />}
+          />
         </Route>
       </Route>
 
