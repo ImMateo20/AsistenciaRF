@@ -3,7 +3,7 @@ import { NavLink } from "react-router";
 const opcionesAdministrador = [
   { label: "Profesores", to: "/admin/profesores" },
   { label: "Alumnos", to: "/admin/alumnos" },
-  { label: "Asignaturas" },
+  { label: "Asignaturas", to: "/admin/asignaturas" },
   { label: "Grupos" },
   { label: "Clases" },
   { label: "Asistencias" },
