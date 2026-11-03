@@ -1,0 +1,1 @@
+En esta carpeta se almacenan las capturas de los tickets terminados de Trello
