@@ -1,0 +1,141 @@
+/* ESTILOS HORARIOOOSSS */
+.clase-crear__contenido {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
+.clase-crear__tarjetas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.clase-crear__tarjeta,
+.clase-horarios {
+    box-sizing: border-box;
+    min-width: 0;
+    border: 0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgb(26 64 51 / 7%);
+}
+
+.clase-crear__tarjeta {
+    display: grid;
+    align-content: start;
+    gap: 24px;
+    padding: 20px;
+}
+
+.clase-horarios {
+    margin: 0;
+    padding: 16px 24px 24px;
+}
+
+.clase-horarios__encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.clase-horarios__encabezado h2,
+.clase-crear__aviso h2 {
+    margin: 0;
+    color: #203c36;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.clase-horarios__columnas,
+.clase-horarios__fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)) 5.5rem;
+    align-items: center;
+    gap: 14px;
+}
+
+.clase-horarios__columnas {
+    margin-bottom: 8px;
+    color: #637970;
+    font-size: 14px;
+}
+
+.clase-horarios__fila+.clase-horarios__fila {
+    margin-top: 10px;
+}
+
+.clase-horarios__fila .field,
+.clase-horarios__fila .field__input {
+    min-width: 0;
+}
+
+.clase-horarios__fila .field__input {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.clase-horarios__solo-lector,
+.clase-horarios__etiqueta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.clase-crear__aviso {
+    padding: 14px 20px;
+    border-radius: 14px;
+    background: #edf9f6;
+    box-shadow: 0 3px 6px rgb(26 64 51 / 7%);
+}
+
+.clase-crear__aviso h2 {
+    font-size: 16px;
+}
+
+.clase-crear__aviso p {
+    margin: 4px 0 0;
+    color: #637970;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+    .clase-crear__tarjetas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .clase-horarios__columnas {
+        display: none;
+    }
+
+    .clase-horarios__fila {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+    }
+
+    .clase-horarios__fila+.clase-horarios__fila {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #dfe9e5;
+    }
+
+    .clase-horarios__fila .field:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .clase-horarios__etiqueta {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip-path: none;
+        white-space: normal;
+    }
+}

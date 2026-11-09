@@ -38,3 +38,7 @@ export function editarClase({ claseId, datos, token }) {
     token,
   });
 }
+
+export function obtenerHorariosClase({ claseId, token, signal }) {
+  return apiRequest(`/clases/${claseId}/horarios`, { token, signal });
+}

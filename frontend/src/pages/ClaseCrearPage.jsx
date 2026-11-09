@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
+import Card from "../components/Card";
 import Button from "../components/Button";
 import FormActions from "../components/FormActions";
+import HorariosClaseFields from "../components/HorariosClaseFields";
 import useAuth from "../context/useAuth";
 import { ApiError } from "../services/api";
 import { consultarCatalogosClases } from "../services/catalogosClases";
@@ -14,6 +16,27 @@ const campos = [
   { nombre: "profesor_id", etiqueta: "Profesor", catalogo: "profesores" },
 ];
 
+function crearBloqueVacio(clave) {
+  return { clave, dia_semana: 1, hora_inicio: "", hora_fin: "" };
+}
+
+function hayTraslapes(horarios) {
+  const ordenados = [...horarios].sort(
+    (a, b) =>
+      a.dia_semana - b.dia_semana || a.hora_inicio.localeCompare(b.hora_inicio)
+  );
+
+  return ordenados.some((bloque, indice) => {
+    const anterior = ordenados[indice - 1];
+
+    return (
+      anterior &&
+      anterior.dia_semana === bloque.dia_semana &&
+      bloque.hora_inicio < anterior.hora_fin
+    );
+  });
+}
+
 export default function ClaseCrearPage() {
   const navigate = useNavigate();
   const { token, limpiarSesion } = useAuth();
@@ -24,16 +47,19 @@ export default function ClaseCrearPage() {
   const [intento, setIntento] = useState(0);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+  const [bloques, setBloques] = useState(() => [crearBloqueVacio(1)]);
+  const siguienteClave = useRef(2);
 
   useEffect(() => {
     const controlador = new AbortController();
+    const signal = controlador.signal;
 
-    consultarCatalogosClases({ token, signal: controlador.signal })
+    consultarCatalogosClases({ token, signal })
       .then((datos) => {
-        if (!controlador.signal.aborted) setCatalogos(datos);
+        if (!signal.aborted) setCatalogos(datos);
       })
       .catch((error) => {
-        if (controlador.signal.aborted) return;
+        if (signal.aborted) return;
 
         if (error instanceof ApiError && error.status === 401) {
           limpiarSesion();
@@ -50,14 +76,46 @@ export default function ClaseCrearPage() {
   const faltantes = catalogos
     ? campos.filter(({ catalogo }) => catalogos[catalogo].length === 0)
     : [];
+  const formularioListo = catalogos !== null && faltantes.length === 0;
+
+  function agregarHorario() {
+    const clave = siguienteClave.current;
+    siguienteClave.current += 1;
+
+    setBloques((actuales) => [...actuales, crearBloqueVacio(clave)]);
+    setError("");
+  }
+
+  function cambiarHorario(clave, campo, valor) {
+    setBloques((actuales) =>
+      actuales.map((bloque) =>
+        bloque.clave === clave ? { ...bloque, [campo]: valor } : bloque
+      )
+    );
+    setError("");
+  }
+
+  function quitarHorario(clave) {
+    setBloques((actuales) =>
+      actuales.length > 1
+        ? actuales.filter((bloque) => bloque.clave !== clave)
+        : actuales
+    );
+    setError("");
+  }
 
   function cancelar() {
     if (guardando) return;
 
-    if (
-      Object.values(seleccion).some(Boolean) &&
-      !window.confirm("¿Quieres salir sin guardar la clase?")
-    ) {
+    const hayCambios =
+      Object.values(seleccion).some(Boolean) ||
+      bloques.length > 1 ||
+      bloques.some(
+        ({ dia_semana, hora_inicio, hora_fin }) =>
+          dia_semana !== 1 || hora_inicio || hora_fin
+      );
+
+    if (hayCambios && !window.confirm("¿Quieres salir sin guardar la clase?")) {
       return;
     }
 
@@ -67,7 +125,7 @@ export default function ClaseCrearPage() {
   async function guardar(evento) {
     evento.preventDefault();
 
-    if (guardando || !catalogos || faltantes.length > 0) return;
+    if (guardando || !formularioListo) return;
 
     const datos = {};
 
@@ -84,6 +142,30 @@ export default function ClaseCrearPage() {
       datos[nombre] = id;
     }
 
+    const horarios = bloques.map(({ dia_semana, hora_inicio, hora_fin }) => ({
+      dia_semana,
+      hora_inicio,
+      hora_fin,
+    }));
+
+    if (
+      horarios.some(
+        ({ hora_inicio, hora_fin }) =>
+          !hora_inicio || !hora_fin || hora_fin <= hora_inicio
+      )
+    ) {
+      setError(
+        "Completa los horarios. La hora de fin debe ser posterior al inicio."
+      );
+      return;
+    }
+
+    if (hayTraslapes(horarios)) {
+      setError("Dos horarios de esta clase se cruzan el mismo día.");
+      return;
+    }
+
+    datos.bloques = horarios;
     setGuardando(true);
     setError("");
 
@@ -107,11 +189,12 @@ export default function ClaseCrearPage() {
   }
 
   return (
-    <section className="page">
+    <section className="page page--formulario">
       <header>
         <h1 className="page__title">Crear clase</h1>
         <p className="page__description">
-          Selecciona la asignatura, el grupo y el profesor.
+          Selecciona la asignatura, el grupo y el profesor, y agrega los
+          horarios.
         </p>
       </header>
 
@@ -121,7 +204,7 @@ export default function ClaseCrearPage() {
         aria-busy={cargando || guardando}
       >
         <div className="page__body">
-          <div className="form-fields profesor-form__fields">
+          <div className="clase-crear__contenido">
             {cargando && <p role="status">Cargando opciones…</p>}
 
             {errorCarga && (
@@ -129,6 +212,7 @@ export default function ClaseCrearPage() {
                 <p className="message message--error" role="alert">
                   {errorCarga}
                 </p>
+
                 <Button
                   type="button"
                   variant="secondary"
@@ -142,38 +226,73 @@ export default function ClaseCrearPage() {
               </div>
             )}
 
-            {catalogos &&
-              campos.map(({ nombre, etiqueta, catalogo }) => (
-                <div className="field" key={nombre}>
-                  <label className="field__label" htmlFor={`clase-${nombre}`}>
-                    {etiqueta}
-                  </label>
+            {catalogos && (
+              <div className="clase-crear__tarjetas">
+                {[campos.slice(0, 2), campos.slice(2)].map(
+                  (camposTarjeta, indice) => (
+                    <Card className="clase-crear__tarjeta" key={indice}>
+                      {camposTarjeta.map(({ nombre, etiqueta, catalogo }) => (
+                        <div className="field" key={nombre}>
+                          <label
+                            className="field__label"
+                            htmlFor={`clase-${nombre}`}
+                          >
+                            {etiqueta}
+                          </label>
 
-                  <select
-                    id={`clase-${nombre}`}
-                    className="field__input"
-                    value={seleccion[nombre] ?? ""}
-                    onChange={(evento) => {
-                      const valor = evento.target.value;
-                      setSeleccion((actual) => ({
-                        ...actual,
-                        [nombre]: valor,
-                      }));
-                      setError("");
-                    }}
-                    disabled={guardando || catalogos[catalogo].length === 0}
-                    required
-                  >
-                    <option value="">Selecciona una opción</option>
-                    {catalogos[catalogo].map((opcion) => (
-                      <option key={opcion.id} value={opcion.id}>
-                        {opcion.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
+                          <select
+                            id={`clase-${nombre}`}
+                            className="field__input"
+                            value={seleccion[nombre] ?? ""}
+                            onChange={(evento) => {
+                              const valor = evento.target.value;
+                              setSeleccion((actual) => ({
+                                ...actual,
+                                [nombre]: valor,
+                              }));
+                              setError("");
+                            }}
+                            disabled={
+                              guardando || catalogos[catalogo].length === 0
+                            }
+                            required
+                          >
+                            <option value="">
+                              Seleccionar {etiqueta.toLowerCase()}
+                            </option>
 
+                            {catalogos[catalogo].map((opcion) => (
+                              <option key={opcion.id} value={opcion.id}>
+                                {opcion.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </Card>
+                  )
+                )}
+              </div>
+            )}
+
+            {formularioListo && (
+              <HorariosClaseFields
+                bloques={bloques}
+                onAgregar={agregarHorario}
+                onCambiar={cambiarHorario}
+                onQuitar={quitarHorario}
+                disabled={guardando}
+              />
+            )}
+            {formularioListo && (
+              <aside className="clase-crear__aviso">
+                <h2>Evita cruces de horario</h2>
+                <p>
+                  Al guardar, se revisará que los horarios no coincidan con otra
+                  clase del mismo grupo.
+                </p>
+              </aside>
+            )}
             {faltantes.length > 0 && (
               <p className="message message--error" role="alert">
                 No hay opciones para:{" "}
@@ -189,7 +308,7 @@ export default function ClaseCrearPage() {
           </div>
         </div>
 
-        {catalogos && faltantes.length === 0 ? (
+        {formularioListo ? (
           <FormActions
             onCancel={cancelar}
             submitLabel="Crear clase"
@@ -206,4 +325,3 @@ export default function ClaseCrearPage() {
     </section>
   );
 }
-    
