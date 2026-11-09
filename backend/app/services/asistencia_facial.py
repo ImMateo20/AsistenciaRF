@@ -133,7 +133,7 @@ def registrar_asistencia_facial(
     if asistencia_id is not None:
         return ResultadoReconocimientoSalida(
             estado="ya_registrada",
-            mensaje="El alumno ya tiene asistencia en esta sesión.",
+            mensaje="El alumno ya tiene asistencia en esta sesión",
             alumno_id=alumno_id,
             nombre=nombre,
             matricula=matricula,
