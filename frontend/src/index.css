@@ -715,3 +715,9 @@ a {
     margin-left: auto;
   }
 }
+
+/* PROFESORESSS CLASES */
+
+.profesor-row.clase-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}

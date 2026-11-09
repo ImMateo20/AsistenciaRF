@@ -2,6 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
+from datetime import date
+from sqlalchemy.dialects.mysql import insert
 
 from app.models.asignatura import Asignatura
 from app.models.clase import Clase
@@ -115,15 +117,40 @@ def guardar_clase(db: Session, clase: Clase) -> ClaseSalida:
         raise
 
 
+def obtener_periodo_predeterminado(db: Session) -> int:
+    nombre = "2026B"
+
+    consulta = select(PeriodoEscolar.id).where(PeriodoEscolar.nombre == nombre)
+    periodo_id = db.execute(consulta).scalar_one_or_none()
+
+    if periodo_id is not None:
+        return periodo_id
+
+    sentencia = insert(PeriodoEscolar).values(
+        nombre=nombre,
+        fecha_inicio=date(2026, 8, 1),
+        fecha_fin=date(2026, 12, 31),
+        activo=True,
+    )
+
+    # Si otra solicitud acaba de crearlo, conserva el registro existente.
+    db.execute(sentencia.on_duplicate_key_update(nombre=PeriodoEscolar.nombre))
+
+    return db.execute(consulta.with_for_update()).scalar_one()
+
+
 def crear_clase(db: Session, datos: ClaseCrear) -> ClaseSalida:
+    periodo_id = obtener_periodo_predeterminado(db)
     campos = datos.model_dump()
+    campos["periodo_id"] = periodo_id
+
     validar_referencias(db, **campos)
 
     comprobar_clase_duplicada(
         db,
         asignatura_id=datos.asignatura_id,
         grupo_id=datos.grupo_id,
-        periodo_id=datos.periodo_id,
+        periodo_id=periodo_id,
     )
 
     clase = Clase(**campos)
@@ -138,8 +165,8 @@ def editar_clase(db: Session, clase_id: int, datos: ClaseEditar) -> ClaseSalida:
     asignatura_id = cambios.get("asignatura_id", clase.asignatura_id)
     grupo_id = cambios.get("grupo_id", clase.grupo_id)
     profesor_id = cambios.get("profesor_id", clase.profesor_id)
-    periodo_id = cambios.get("periodo_id", clase.periodo_id)
-
+    periodo_id = clase.periodo_id
+    
     validar_referencias(
         db,
         asignatura_id=asignatura_id,

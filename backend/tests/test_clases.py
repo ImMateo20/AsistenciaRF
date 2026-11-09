@@ -9,11 +9,18 @@ from app.dependencies.auth import obtener_usuario_actual, requerir_administrador
 from app.main import app
 from app.models.clase import Clase
 
-DATOS_CLASE = {
+
+DATOS_CREAR_CLASE = {
     "asignatura_id": 1,
     "grupo_id": 2,
     "profesor_id": 3,
-    "periodo_id": 4,
+}
+
+PERIODO_ID = 4
+
+DATOS_CLASE = {
+    **DATOS_CREAR_CLASE,
+    "periodo_id": PERIODO_ID,
 }
 
 
@@ -29,7 +36,6 @@ def entorno():
         return object() if identificador in DATOS_CLASE.values() else None
 
     def simular_insercion(nueva_clase):
-        # Simula el ID y el estado que tendría la clase después de insertarla.
         nueva_clase.id = 11
         nueva_clase.activo = True
 
@@ -37,6 +43,9 @@ def entorno():
     db.add.side_effect = simular_insercion
     db.scalar.return_value = None
     db.scalars.return_value = [clase]
+
+    # Por defecto, 2026B ya existe en la base simulada.
+    db.execute.return_value.scalar_one_or_none.return_value = PERIODO_ID
 
     anteriores = app.dependency_overrides.copy()
     app.dependency_overrides[obtener_db] = lambda: db
@@ -56,8 +65,9 @@ def test_listar_clases(entorno):
     respuesta = cliente.get("/clases?limite=1&desplazamiento=0")
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == [{"id": 10, **DATOS_CLASE, "activo": True}]
-
+    assert respuesta.json() == [
+        {"id": 10, **DATOS_CREAR_CLASE, "activo": True}
+    ]
 
 def test_consultar_clase_inexistente(entorno):
     cliente, _ = entorno
@@ -67,13 +77,32 @@ def test_consultar_clase_inexistente(entorno):
     assert respuesta.status_code == 404
 
 
-def test_crear_clase(entorno):
+def test_crear_clase_con_periodo_predeterminado_existente(entorno):
     cliente, db = entorno
 
-    respuesta = cliente.post("/clases", json=DATOS_CLASE)
+    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
 
     assert respuesta.status_code == 201
-    assert respuesta.json() == {"id": 11, **DATOS_CLASE, "activo": True}
+    assert respuesta.json() == {
+        "id": 11, **DATOS_CREAR_CLASE, "activo": True
+    }
+    assert db.add.call_args.args[0].periodo_id == PERIODO_ID
+    db.commit.assert_called_once()
+
+
+
+def test_crear_clase_cuando_falta_el_periodo_predeterminado(entorno):
+    cliente, db = entorno
+    db.execute.return_value.scalar_one_or_none.return_value = None
+    db.execute.return_value.scalar_one.return_value = PERIODO_ID
+
+    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
+
+    assert respuesta.status_code == 201
+    assert respuesta.json() == {
+        "id": 11, **DATOS_CREAR_CLASE, "activo": True
+    }
+    assert db.add.call_args.args[0].periodo_id == PERIODO_ID
     db.commit.assert_called_once()
 
 
@@ -81,37 +110,58 @@ def test_rechazar_clase_duplicada(entorno):
     cliente, db = entorno
     db.scalar.return_value = 10
 
-    respuesta = cliente.post("/clases", json=DATOS_CLASE)
+    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
 
     assert respuesta.status_code == 409
     db.add.assert_not_called()
     db.commit.assert_not_called()
 
 
-def test_rechazar_periodo_inexistente(entorno):
+def test_rechazar_asignatura_inexistente(entorno):
     cliente, db = entorno
 
     respuesta = cliente.post(
         "/clases",
-        json={**DATOS_CLASE, "periodo_id": 999},
+        json={**DATOS_CREAR_CLASE, "asignatura_id": 999},
     )
 
     assert respuesta.status_code == 422
-    assert respuesta.json()["detail"] == "El periodo escolar no existe."
+    assert respuesta.json()["detail"] == "La asignatura no existe."
     db.commit.assert_not_called()
 
 
-def test_editar_solo_el_estado(entorno):
+def test_rechazar_periodo_en_el_registro(entorno):
     cliente, db = entorno
+
+    respuesta = cliente.post("/clases", json=DATOS_CLASE)
+
+    assert respuesta.status_code == 422
+    assert any(
+        error["loc"] == ["body", "periodo_id"]
+        for error in respuesta.json()["detail"]
+    )
+    db.commit.assert_not_called()
+
+
+def test_editar_solo_el_estado_conserva_el_periodo(entorno):
+    cliente, db = entorno
+    clase = db.get(Clase, 10)
+    periodo_original = clase.periodo_id
 
     respuesta = cliente.patch("/clases/10", json={"activo": False})
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"id": 10, **DATOS_CLASE, "activo": False}
+    assert respuesta.json() == {
+        "id": 10, **DATOS_CREAR_CLASE, "activo": False
+    }
+    assert clase.periodo_id == periodo_original
     db.commit.assert_called_once()
 
 
-@pytest.mark.parametrize("cambios", [{}, {"activo": None}, {"grupo_id": 0}])
+@pytest.mark.parametrize(
+    "cambios",
+    [{}, {"activo": None}, {"grupo_id": 0}, {"periodo_id": 5}],
+)
 def test_rechazar_edicion_invalida(entorno, cambios):
     cliente, db = entorno
 
@@ -122,11 +172,11 @@ def test_rechazar_edicion_invalida(entorno, cambios):
 
 
 def test_listado_requiere_autenticacion():
-    # Aquí no usamos el entorno simulado: queremos probar la protección real.
     with TestClient(app) as cliente:
         respuesta = cliente.get("/clases")
 
     assert respuesta.status_code == 401
+
 
 def test_profesor_no_puede_listar_clases():
     profesor = Mock(rol="profesor", activo=True)
