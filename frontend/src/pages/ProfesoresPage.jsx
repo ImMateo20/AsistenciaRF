@@ -86,7 +86,7 @@ export default function ProfesoresPage() {
   const cargando = resultado.estado === "loading";
 
   return (
-    <section className="page">
+    <section className="page page--listado">
       <header>
         <h1 className="page__title">Profesores</h1>
 

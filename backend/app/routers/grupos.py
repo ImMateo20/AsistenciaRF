@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import obtener_db
 from app.dependencies.auth import requerir_administrador
-from app.schemas.grupo import GrupoCrear, GrupoEditar, GrupoSalida
+from app.schemas.grupo import GrupoCrear, GrupoEditar, GrupoSalida, GrupoListado
 from app.services.grupos import (
     crear_grupo,
     editar_grupo,
@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[GrupoSalida])
+@router.get("", response_model=list[GrupoListado])
 def consultar_grupos(
     db: Annotated[Session, Depends(obtener_db)],
     limite: Annotated[int, Query(ge=1, le=100)] = 20,

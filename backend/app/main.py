@@ -8,6 +8,7 @@ from app.routers.alumnos import router as alumnos_router
 from app.routers.asignaturas import router as asignaturas_router
 from app.routers.grupos import router as grupos_router
 from app.routers.clases import router as clases_router
+from app.routers.clases_profesor import router as clases_profesor_router
 
 app = FastAPI(title="AsistenciaRF")
 
@@ -28,7 +29,7 @@ app.include_router(alumnos_router)
 app.include_router(asignaturas_router)
 app.include_router(grupos_router)
 app.include_router(clases_router)
-
+app.include_router(clases_profesor_router)
 
 
 @app.get("/health")

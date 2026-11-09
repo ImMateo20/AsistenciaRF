@@ -57,6 +57,7 @@ export default function AsignaturasPage() {
   }, [token, pagina, intento, limpiarSesion]);
 
   function cambiarPagina(nuevaPagina) {
+    
     setResultado(resultadoInicial);
     setPagina(nuevaPagina);
   }
@@ -69,7 +70,7 @@ export default function AsignaturasPage() {
   const cargando = resultado.estado === "cargando";
 
   return (
-    <section className="page">
+    <section className="page page--listado">
       <header>
         <h1 className="page__title">Asignaturas</h1>
         <p className="page__description">

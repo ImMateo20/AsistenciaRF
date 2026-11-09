@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, String, text
+from sqlalchemy import Boolean, ForeignKey, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.base import Base
@@ -15,6 +15,12 @@ class Alumno(Base):
     )
 
     nombre: Mapped[str] = mapped_column(String(150))
+
+    grupo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("grupos.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
 
     activo: Mapped[bool] = mapped_column(
         Boolean,

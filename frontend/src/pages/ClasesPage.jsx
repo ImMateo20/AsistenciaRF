@@ -118,7 +118,7 @@ export default function ClasesPage() {
   const nombres = catalogos.datos;
 
   return (
-    <section className="page">
+    <section className="page page--listado">
       <header>
         <h1 className="page__title">Clases</h1>
         <p className="page__description">
