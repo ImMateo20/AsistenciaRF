@@ -9,11 +9,21 @@ from app.dependencies.auth import obtener_usuario_actual, requerir_administrador
 from app.main import app
 from app.models.clase import Clase
 
-
 DATOS_CREAR_CLASE = {
     "asignatura_id": 1,
     "grupo_id": 2,
     "profesor_id": 3,
+}
+
+DATOS_POST_CLASE = {
+    **DATOS_CREAR_CLASE,
+    "bloques": [
+        {
+            "dia_semana": 1,
+            "hora_inicio": "07:00",
+            "hora_fin": "09:00",
+        }
+    ],
 }
 
 PERIODO_ID = 4
@@ -65,9 +75,8 @@ def test_listar_clases(entorno):
     respuesta = cliente.get("/clases?limite=1&desplazamiento=0")
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == [
-        {"id": 10, **DATOS_CREAR_CLASE, "activo": True}
-    ]
+    assert respuesta.json() == [{"id": 10, **DATOS_CREAR_CLASE, "activo": True}]
+
 
 def test_consultar_clase_inexistente(entorno):
     cliente, _ = entorno
@@ -83,12 +92,9 @@ def test_crear_clase_con_periodo_predeterminado_existente(entorno):
     respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
 
     assert respuesta.status_code == 201
-    assert respuesta.json() == {
-        "id": 11, **DATOS_CREAR_CLASE, "activo": True
-    }
+    assert respuesta.json() == {"id": 11, **DATOS_CREAR_CLASE, "activo": True}
     assert db.add.call_args.args[0].periodo_id == PERIODO_ID
     db.commit.assert_called_once()
-
 
 
 def test_crear_clase_cuando_falta_el_periodo_predeterminado(entorno):
@@ -99,9 +105,7 @@ def test_crear_clase_cuando_falta_el_periodo_predeterminado(entorno):
     respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
 
     assert respuesta.status_code == 201
-    assert respuesta.json() == {
-        "id": 11, **DATOS_CREAR_CLASE, "activo": True
-    }
+    assert respuesta.json() == {"id": 11, **DATOS_CREAR_CLASE, "activo": True}
     assert db.add.call_args.args[0].periodo_id == PERIODO_ID
     db.commit.assert_called_once()
 
@@ -137,8 +141,7 @@ def test_rechazar_periodo_en_el_registro(entorno):
 
     assert respuesta.status_code == 422
     assert any(
-        error["loc"] == ["body", "periodo_id"]
-        for error in respuesta.json()["detail"]
+        error["loc"] == ["body", "periodo_id"] for error in respuesta.json()["detail"]
     )
     db.commit.assert_not_called()
 
@@ -151,9 +154,7 @@ def test_editar_solo_el_estado_conserva_el_periodo(entorno):
     respuesta = cliente.patch("/clases/10", json={"activo": False})
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {
-        "id": 10, **DATOS_CREAR_CLASE, "activo": False
-    }
+    assert respuesta.json() == {"id": 10, **DATOS_CREAR_CLASE, "activo": False}
     assert clase.periodo_id == periodo_original
     db.commit.assert_called_once()
 

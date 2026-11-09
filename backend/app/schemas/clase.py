@@ -1,13 +1,12 @@
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from app.schemas.horario_clase import HorarioActualizar, BloqueHorario
 
 IdPositivo = Annotated[int, Field(gt=0, strict=True)]
 
 
-class ClaseCrear(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class ClaseCrear(HorarioActualizar):
     asignatura_id: IdPositivo
     grupo_id: IdPositivo
     profesor_id: IdPositivo
@@ -20,6 +19,7 @@ class ClaseEditar(BaseModel):
     grupo_id: IdPositivo | None = None
     profesor_id: IdPositivo | None = None
     activo: bool | None = None
+    bloques: list[BloqueHorario] | None = None
 
     @model_validator(mode="after")
     def comprobar_campos(self):
@@ -30,6 +30,8 @@ class ClaseEditar(BaseModel):
             if getattr(self, campo) is None:
                 raise ValueError(f"El campo {campo} no admite null")
 
+        if self.bloques is not None:
+            HorarioActualizar(bloques=self.bloques)
         return self
 
 

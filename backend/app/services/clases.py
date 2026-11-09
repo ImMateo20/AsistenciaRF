@@ -1,10 +1,13 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from datetime import date
 from sqlalchemy.dialects.mysql import insert
 
+from app.models.horario_clase import HorarioClase
+from app.schemas.horario_clase import BloqueHorario, HorarioBloqueSalida
+from app.services.horarios_clase import comprobar_horario_de_clase
 from app.models.asignatura import Asignatura
 from app.models.clase import Clase
 from app.models.grupo import Grupo
@@ -85,12 +88,27 @@ def comprobar_clase_duplicada(
         )
 
 
-def guardar_clase(db: Session, clase: Clase) -> ClaseSalida:
+def guardar_clase(
+    db: Session,
+    clase: Clase,
+    bloques: list[BloqueHorario] | None = None,
+) -> ClaseSalida:
     try:
         db.flush()
+
+        if bloques:
+            db.add_all(
+                [
+                    HorarioClase(clase_id=clase.id, **bloque.model_dump())
+                    for bloque in bloques
+                ]
+            )
+            db.flush()
+
         resultado = ClaseSalida.model_validate(clase)
         db.commit()
         return resultado
+
     except IntegrityError as error:
         db.rollback()
 
@@ -141,10 +159,17 @@ def obtener_periodo_predeterminado(db: Session) -> int:
 
 def crear_clase(db: Session, datos: ClaseCrear) -> ClaseSalida:
     periodo_id = obtener_periodo_predeterminado(db)
-    campos = datos.model_dump()
+    campos = datos.model_dump(exclude={"bloques"})
     campos["periodo_id"] = periodo_id
 
     validar_referencias(db, **campos)
+
+    comprobar_horario_de_clase(
+        db,
+        grupo_id=datos.grupo_id,
+        profesor_id=datos.profesor_id,
+        bloques=datos.bloques,
+    )
 
     comprobar_clase_duplicada(
         db,
@@ -155,35 +180,95 @@ def crear_clase(db: Session, datos: ClaseCrear) -> ClaseSalida:
 
     clase = Clase(**campos)
     db.add(clase)
-    return guardar_clase(db, clase)
+    return guardar_clase(db, clase, datos.bloques)
 
 
 def editar_clase(db: Session, clase_id: int, datos: ClaseEditar) -> ClaseSalida:
-    clase = buscar_clase(db, clase_id)
-    cambios = datos.model_dump(exclude_unset=True)
+    try:
+        clase = buscar_clase(db, clase_id)
+        db.refresh(clase, with_for_update=True)
 
-    asignatura_id = cambios.get("asignatura_id", clase.asignatura_id)
-    grupo_id = cambios.get("grupo_id", clase.grupo_id)
-    profesor_id = cambios.get("profesor_id", clase.profesor_id)
-    periodo_id = clase.periodo_id
-    
-    validar_referencias(
-        db,
-        asignatura_id=asignatura_id,
-        grupo_id=grupo_id,
-        profesor_id=profesor_id,
-        periodo_id=periodo_id,
+        cambios = datos.model_dump(exclude_unset=True, exclude={"bloques"})
+
+        asignatura_id = cambios.get("asignatura_id", clase.asignatura_id)
+        grupo_id = cambios.get("grupo_id", clase.grupo_id)
+        profesor_id = cambios.get("profesor_id", clase.profesor_id)
+        activo = cambios.get("activo", clase.activo)
+
+        validar_referencias(
+            db,
+            asignatura_id=asignatura_id,
+            grupo_id=grupo_id,
+            profesor_id=profesor_id,
+            periodo_id=clase.periodo_id,
+        )
+
+        comprobar_clase_duplicada(
+            db,
+            asignatura_id=asignatura_id,
+            grupo_id=grupo_id,
+            periodo_id=clase.periodo_id,
+            excluir_clase_id=clase.id,
+        )
+
+        debe_revisar_horario = activo and (
+            datos.bloques is not None
+            or grupo_id != clase.grupo_id
+            or profesor_id != clase.profesor_id
+            or not clase.activo
+        )
+
+        if debe_revisar_horario:
+            bloques_para_revisar = datos.bloques
+
+            if bloques_para_revisar is None:
+                horarios_actuales = db.scalars(
+                    consulta_horarios(clase.id).with_for_update()
+                ).all()
+
+                bloques_para_revisar = [
+                    BloqueHorario(
+                        dia_semana=horario.dia_semana,
+                        hora_inicio=horario.hora_inicio,
+                        hora_fin=horario.hora_fin,
+                    )
+                    for horario in horarios_actuales
+                ]
+
+            comprobar_horario_de_clase(
+                db,
+                grupo_id=grupo_id,
+                profesor_id=profesor_id,
+                bloques=bloques_para_revisar,
+                excluir_clase_id=clase.id,
+            )
+
+        if datos.bloques is not None:
+            db.execute(delete(HorarioClase).where(HorarioClase.clase_id == clase.id))
+
+        for campo, valor in cambios.items():
+            setattr(clase, campo, valor)
+
+        return guardar_clase(db, clase, datos.bloques)
+
+    except (HTTPException, SQLAlchemyError):
+        db.rollback()
+        raise
+
+
+def consulta_horarios(clase_id: int):
+    return (
+        select(HorarioClase)
+        .where(HorarioClase.clase_id == clase_id)
+        .order_by(HorarioClase.dia_semana, HorarioClase.hora_inicio)
     )
 
-    comprobar_clase_duplicada(
-        db,
-        asignatura_id=asignatura_id,
-        grupo_id=grupo_id,
-        periodo_id=periodo_id,
-        excluir_clase_id=clase.id,
-    )
 
-    for campo, valor in cambios.items():
-        setattr(clase, campo, valor)
+def listar_horarios_clase(
+    db: Session,
+    clase_id: int,
+) -> list[HorarioBloqueSalida]:
+    buscar_clase(db, clase_id)
+    horarios = db.scalars(consulta_horarios(clase_id)).all()
 
-    return guardar_clase(db, clase)
+    return [HorarioBloqueSalida.model_validate(horario) for horario in horarios]

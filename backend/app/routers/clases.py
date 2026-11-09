@@ -6,11 +6,13 @@ from sqlalchemy.orm import Session
 from app.database import obtener_db
 from app.dependencies.auth import requerir_administrador
 from app.schemas.clase import ClaseCrear, ClaseEditar, ClaseSalida
+from app.schemas.horario_clase import HorarioBloqueSalida
 from app.services.clases import (
     crear_clase,
     editar_clase,
     listar_clases,
     obtener_clase,
+    listar_horarios_clase,
 )
 
 router = APIRouter(
@@ -56,3 +58,14 @@ def actualizar_clase(
     db: Annotated[Session, Depends(obtener_db)],
 ):
     return editar_clase(db, clase_id, datos)
+
+
+@router.get(
+    "/{clase_id}/horarios",
+    response_model=list[HorarioBloqueSalida],
+)
+def consultar_horarios_clase(
+    clase_id: Annotated[int, Path(ge=1)],
+    db: Annotated[Session, Depends(obtener_db)],
+):
+    return listar_horarios_clase(db, clase_id)
