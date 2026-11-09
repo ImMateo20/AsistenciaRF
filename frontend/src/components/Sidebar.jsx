@@ -9,7 +9,10 @@ const opcionesAdministrador = [
   { label: "Asistencias" },
 ];
 
-const opcionesProfesor = [{ label: "Clases" }, { label: "Asistencias" }];
+const opcionesProfesor = [
+  { label: "Clases", to: "/profesor/clases" },
+  { label: "Asistencias" },
+];
 
 export default function Sidebar({ rol, children }) {
   const esAdministrador = rol === "administrador";

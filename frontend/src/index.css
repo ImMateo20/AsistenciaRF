@@ -897,3 +897,95 @@ a {
     scroll-behavior: smooth;
   }
 }
+
+
+/* PROFESOR CONSULTA */
+.mis-clases {
+  display: grid;
+  gap: 16px;
+}
+
+.mis-clases__tarjeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 25%) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 20px;
+  border: 1px solid #dfe9e5;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(26 64 51 / 7%);
+  color: #203c36;
+}
+
+.mis-clases__tarjeta h2,
+.mis-clases__tarjeta p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.mis-clases__tarjeta small {
+  display: block;
+  color: #637970;
+}
+
+.mis-clases__detalle {
+  color: #203c36;
+}
+
+.mis-clases__detalle h2 {
+  margin: 0 0 8px;
+}
+
+.mis-clases__detalle p {
+  margin: 0 0 8px;
+}
+
+.page__actions.mis-clases__regreso {
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .mis-clases__tarjeta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+  }
+
+  .mis-clases__tarjeta p {
+    grid-column: 1;
+  }
+
+  .mis-clases__tarjeta> :last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+.mis-clases__regreso button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #a7d8cb;
+  background: #e0f5ef;
+  color: #203c36;
+}
+
+.mis-clases__alumnos {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-clases__tarjeta.mis-clases__alumno {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.mis-clases__tarjeta.mis-clases__alumno>span {
+  grid-column: 2;
+  grid-row: 1;
+}
