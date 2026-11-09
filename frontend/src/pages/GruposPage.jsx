@@ -68,7 +68,7 @@ export default function GruposPage() {
   const cargando = resultado.estado === "loading";
 
   return (
-    <section className="page">
+    <section className="page page--listado">
       <header>
         <h1 className="page__title">Grupos</h1>
         <p className="page__description">
@@ -112,7 +112,10 @@ export default function GruposPage() {
                         {grupo.activo ? "Activo" : "Inactivo"}
                       </span>
                     </div>
-
+                    <span className="grupo-row__cantidad">
+                      {grupo.cantidad_alumnos}{" "}
+                      {grupo.cantidad_alumnos === 1 ? "alumno" : "alumnos"}
+                    </span>
                     <Button
                       variant="edit"
                       onClick={() =>

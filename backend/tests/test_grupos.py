@@ -12,6 +12,7 @@ from app.models.token_revocado import TokenRevocado
 from app.models.usuario import Usuario
 from app.security import generar_hash
 from app.tokens import crear_token_acceso
+from app.models.alumno import Alumno
 
 
 @pytest.fixture(scope="module")
@@ -34,6 +35,7 @@ def entorno_grupos(password_hash):
                 Usuario.__table__,
                 TokenRevocado.__table__,
                 Grupo.__table__,
+                Alumno.__table__,
             ],
         )
 

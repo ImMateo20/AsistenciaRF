@@ -67,3 +67,15 @@ def requerir_administrador(
         )
 
     return usuario
+
+
+def requerir_profesor(
+    usuario: Annotated[Usuario, Depends(obtener_usuario_actual)],
+) -> Usuario:
+    if usuario.rol != "profesor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para realizar esta acción",
+        )
+
+    return usuario

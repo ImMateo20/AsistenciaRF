@@ -59,4 +59,5 @@ class AlumnoSalida(BaseModel):
     id: int
     nombre: str
     matricula: str
+    grupo_id: int | None
     activo: bool

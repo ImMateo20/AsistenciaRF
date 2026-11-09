@@ -80,3 +80,27 @@ export function editarAlumnoConRostro({
     token,
   });
 }
+
+export async function listarAlumnosDisponibles({ token, signal, grupoId }) {
+  const disponibles = [];
+  let pagina = 0;
+
+  while (true) {
+    const { alumnos, haySiguiente } = await listarAlumnos({
+      token,
+      pagina,
+      signal,
+    });
+
+    disponibles.push(
+      ...alumnos.filter(
+        (alumno) =>
+          alumno.grupo_id === grupoId ||
+          (alumno.activo && alumno.grupo_id === null)
+      )
+    );
+    if (!haySiguiente) return disponibles;
+
+    pagina += 1;
+  }
+}

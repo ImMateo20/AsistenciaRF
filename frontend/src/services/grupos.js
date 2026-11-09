@@ -23,10 +23,13 @@ export function obtenerGrupo({ grupoId, token, signal }) {
   return apiRequest(`/grupos/${grupoId}`, { token, signal });
 }
 
-export function crearGrupo({ nombre, token }) {
+export function crearGrupo({ nombre, alumnoIds = [], token }) {
   return apiRequest("/grupos", {
     method: "POST",
-    body: { nombre: nombre.trim() },
+    body: {
+      nombre: nombre.trim(),
+      alumno_ids: alumnoIds,
+    },
     token,
   });
 }
