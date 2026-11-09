@@ -4,7 +4,7 @@ const opcionesAdministrador = [
   { label: "Profesores", to: "/admin/profesores" },
   { label: "Alumnos", to: "/admin/alumnos" },
   { label: "Asignaturas", to: "/admin/asignaturas" },
-  { label: "Grupos" },
+  { label: "Grupos", to: "/admin/grupos" },
   { label: "Clases" },
   { label: "Asistencias" },
 ];
