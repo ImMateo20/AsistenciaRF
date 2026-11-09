@@ -18,6 +18,7 @@ import GrupoEditarPage from "./pages/GrupoEditarPage";
 import ClasesPage from "./pages/ClasesPage";
 import ClaseCrearPage from "./pages/ClaseCrearPage";
 import ClaseEditarPage from "./pages/ClaseEditarPage";
+import MisClasesPage from "./pages/MisClasesPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -95,8 +96,9 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={["profesor"]} />}>
         <Route path="/profesor" element={<AppLayout />}>
           <Route index element={<Navigate to="clases" replace />} />
-
-          <Route path="clases" element={<ClasesBase />} />
+          <Route path="clases" element={<MisClasesPage />} />
+          <Route path="clases" element={<MisClasesPage />} />
+          <Route path="clases/:claseId" element={<MisClasesPage />} />
         </Route>
       </Route>
 
