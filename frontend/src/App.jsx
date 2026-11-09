@@ -15,6 +15,9 @@ import AsignaturaFormularioPage from "./pages/AsignaturaFormularioPage";
 import GruposPage from "./pages/GruposPage";
 import GrupoCrearPage from "./pages/GrupoCrearPage";
 import GrupoEditarPage from "./pages/GrupoEditarPage";
+import ClasesPage from "./pages/ClasesPage";
+import ClaseCrearPage from "./pages/ClaseCrearPage";
+import ClaseEditarPage from "./pages/ClaseEditarPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -83,6 +86,9 @@ export default function App() {
           <Route path="grupos" element={<GruposPage />} />
           <Route path="grupos/crear" element={<GrupoCrearPage />} />
           <Route path="grupos/:grupoId/editar" element={<GrupoEditarPage />} />
+          <Route path="clases" element={<ClasesPage />} />
+          <Route path="clases/crear" element={<ClaseCrearPage />} />
+          <Route path="clases/:claseId/editar" element={<ClaseEditarPage />} />
         </Route>
       </Route>
 

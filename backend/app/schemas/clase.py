@@ -11,7 +11,6 @@ class ClaseCrear(BaseModel):
     asignatura_id: IdPositivo
     grupo_id: IdPositivo
     profesor_id: IdPositivo
-    periodo_id: IdPositivo
 
 
 class ClaseEditar(BaseModel):
@@ -20,7 +19,6 @@ class ClaseEditar(BaseModel):
     asignatura_id: IdPositivo | None = None
     grupo_id: IdPositivo | None = None
     profesor_id: IdPositivo | None = None
-    periodo_id: IdPositivo | None = None
     activo: bool | None = None
 
     @model_validator(mode="after")
@@ -42,5 +40,4 @@ class ClaseSalida(BaseModel):
     asignatura_id: int
     grupo_id: int
     profesor_id: int
-    periodo_id: int
     activo: bool
