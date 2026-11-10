@@ -99,6 +99,7 @@ function CargarGrupo({ grupoId }) {
         >
           Regresar
         </Button>
+        
       </div>
     </section>
   );
