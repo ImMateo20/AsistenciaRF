@@ -92,14 +92,15 @@ function CargarGrupo({ grupoId }) {
           </Button>
         )}
 
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => navigate("/admin/grupos")}
-        >
-          Regresar
-        </Button>
-        
+        {(!idValido || Boolean(error)) && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate("/admin/grupos")}
+          >
+            Regresar
+          </Button>
+        )}
       </div>
     </section>
   );
