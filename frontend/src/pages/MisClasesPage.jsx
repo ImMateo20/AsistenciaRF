@@ -43,7 +43,7 @@ function resumirHorarios(horarios, detalle = false) {
     .join("; ");
 }
 
-export default function MisClasesPage() {
+export default function MisClasesPage({ modoAsistencia = false }) {
   const navigate = useNavigate();
   const { claseId } = useParams();
   const { token, limpiarSesion } = useAuth();
@@ -107,7 +107,11 @@ export default function MisClasesPage() {
     <section className="page page--listado">
       <header>
         <h1 className="page__title">
-          {esDetalle ? "Detalle de clase" : "Clases"}
+          {esDetalle
+            ? "Detalle de clase"
+            : modoAsistencia
+            ? "Asistencias"
+            : "Clases"}
         </h1>
         <p className="page__description">
           {esDetalle
@@ -192,9 +196,16 @@ export default function MisClasesPage() {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => navigate(`/profesor/clases/${clase.id}`)}
+                    disabled={modoAsistencia && !clase.activo}
+                    onClick={() =>
+                      navigate(
+                        modoAsistencia
+                          ? `/profesor/asistencias/${clase.id}`
+                          : `/profesor/clases/${clase.id}`
+                      )
+                    }
                   >
-                    Consultar
+                    {modoAsistencia ? "Tomar asistencia" : "Consultar"}
                   </Button>
                 </article>
               ))}

@@ -6,12 +6,12 @@ const opcionesAdministrador = [
   { label: "Asignaturas", to: "/admin/asignaturas" },
   { label: "Grupos", to: "/admin/grupos" },
   { label: "Clases", to: "/admin/clases" },
-  { label: "Asistencias" },
+  { label: "Asistencias", to: "/admin/asistencias" },
 ];
 
 const opcionesProfesor = [
   { label: "Clases", to: "/profesor/clases" },
-  { label: "Asistencias" },
+  { label: "Asistencias", to: "/profesor/asistencias" },
 ];
 
 export default function Sidebar({ rol, children }) {

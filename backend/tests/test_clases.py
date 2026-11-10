@@ -20,8 +20,8 @@ DATOS_POST_CLASE = {
     "bloques": [
         {
             "dia_semana": 1,
-            "hora_inicio": "07:00",
-            "hora_fin": "09:00",
+            "hora_inicio": "07:00:00",
+            "hora_fin": "09:00:00",
         }
     ],
 }
@@ -51,11 +51,21 @@ def entorno():
 
     db.get.side_effect = buscar_registro
     db.add.side_effect = simular_insercion
-    db.scalar.return_value = None
+
+    def consultar_escalar(consulta):
+        entidad = consulta.column_descriptions[0].get("entity")
+
+        if entidad is Clase:
+            return None
+
+        return 1
+
+    db.scalar.side_effect = consultar_escalar
     db.scalars.return_value = [clase]
 
-    # Por defecto, 2026B ya existe en la base simulada.
     db.execute.return_value.scalar_one_or_none.return_value = PERIODO_ID
+
+    db.execute.return_value.first.return_value = None
 
     anteriores = app.dependency_overrides.copy()
     app.dependency_overrides[obtener_db] = lambda: db
@@ -89,11 +99,19 @@ def test_consultar_clase_inexistente(entorno):
 def test_crear_clase_con_periodo_predeterminado_existente(entorno):
     cliente, db = entorno
 
-    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
+    respuesta = cliente.post("/clases", json=DATOS_POST_CLASE)
 
-    assert respuesta.status_code == 201
+    assert respuesta.status_code == 201, respuesta.json()
     assert respuesta.json() == {"id": 11, **DATOS_CREAR_CLASE, "activo": True}
     assert db.add.call_args.args[0].periodo_id == PERIODO_ID
+    db.add_all.assert_called_once()
+
+    horarios = db.add_all.call_args.args[0]
+    assert len(horarios) == 1
+    assert horarios[0].clase_id == 11
+    assert horarios[0].dia_semana == 1
+    assert horarios[0].hora_inicio.isoformat() == "07:00:00"
+    assert horarios[0].hora_fin.isoformat() == "09:00:00"
     db.commit.assert_called_once()
 
 
@@ -102,22 +120,35 @@ def test_crear_clase_cuando_falta_el_periodo_predeterminado(entorno):
     db.execute.return_value.scalar_one_or_none.return_value = None
     db.execute.return_value.scalar_one.return_value = PERIODO_ID
 
-    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
+    respuesta = cliente.post("/clases", json=DATOS_POST_CLASE)
 
-    assert respuesta.status_code == 201
+    assert respuesta.status_code == 201, respuesta.json()
     assert respuesta.json() == {"id": 11, **DATOS_CREAR_CLASE, "activo": True}
     assert db.add.call_args.args[0].periodo_id == PERIODO_ID
+    db.add_all.assert_called_once()
+
+    horarios = db.add_all.call_args.args[0]
+    assert len(horarios) == 1
+    assert horarios[0].clase_id == 11
+    assert horarios[0].dia_semana == 1
+    assert horarios[0].hora_inicio.isoformat() == "07:00:00"
+    assert horarios[0].hora_fin.isoformat() == "09:00:00"
     db.commit.assert_called_once()
 
 
 def test_rechazar_clase_duplicada(entorno):
     cliente, db = entorno
-    db.scalar.return_value = 10
 
-    respuesta = cliente.post("/clases", json=DATOS_CREAR_CLASE)
+    db.scalar.side_effect = [2, 3, 10]
 
-    assert respuesta.status_code == 409
+    respuesta = cliente.post("/clases", json=DATOS_POST_CLASE)
+
+    assert respuesta.status_code == 409, respuesta.json()
+    assert respuesta.json()["detail"] == (
+        "Ya existe una clase para esta asignatura, grupo y periodo."
+    )
     db.add.assert_not_called()
+    db.add_all.assert_not_called()
     db.commit.assert_not_called()
 
 
@@ -126,7 +157,7 @@ def test_rechazar_asignatura_inexistente(entorno):
 
     respuesta = cliente.post(
         "/clases",
-        json={**DATOS_CREAR_CLASE, "asignatura_id": 999},
+        json={**DATOS_POST_CLASE, "asignatura_id": 999},
     )
 
     assert respuesta.status_code == 422
@@ -137,7 +168,10 @@ def test_rechazar_asignatura_inexistente(entorno):
 def test_rechazar_periodo_en_el_registro(entorno):
     cliente, db = entorno
 
-    respuesta = cliente.post("/clases", json=DATOS_CLASE)
+    respuesta = cliente.post(
+        "/clases",
+        json={**DATOS_POST_CLASE, "periodo_id": PERIODO_ID},
+    )
 
     assert respuesta.status_code == 422
     assert any(
