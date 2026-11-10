@@ -989,3 +989,279 @@ a {
   grid-column: 2;
   grid-row: 1;
 }
+
+/* ASISTENCIAS DEL PROFESOR */
+
+.asistencias-profesor__filtros {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.asistencias-profesor__filtros .field,
+.asistencias-profesor__filtros .field__input {
+  min-width: 0;
+}
+
+.asistencias-profesor__filtros .field__input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* DETALLE DE ASISTENCIA */
+
+.asistencias-profesor__detalle {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(200px, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.asistencias-profesor__detalle h2 {
+  margin: 0;
+  color: #203c36;
+  font-size: 1.25rem;
+}
+
+.asistencias-profesor__resumen,
+.asistencias-profesor__alumno {
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1px solid #dfe9e5;
+  border-radius: 12px;
+  background: #fff;
+  color: #203c36;
+  box-shadow: 0 3px 12px rgb(26 64 51 / 7%);
+}
+
+.asistencias-profesor__alumno {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, auto) 4rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.asistencias-profesor__alumno strong {
+  overflow-wrap: anywhere;
+}
+
+.asistencias-profesor__alumno> :last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.asistencias-profesor__resumen {
+  padding: 16px 20px;
+}
+
+.asistencias-profesor__resumen p {
+  margin: 8px 0 0;
+  color: #637970;
+  font-size: 0.875rem;
+}
+
+.asistencias-profesor__anillo {
+  display: grid;
+  place-items: center;
+  width: min(140px, 100%);
+  aspect-ratio: 1;
+  margin: 16px auto;
+  border-radius: 50%;
+  background: conic-gradient(#1abc9c var(--porcentaje, 0%),
+      #dfe9e5 var(--porcentaje, 0%));
+}
+
+.asistencias-profesor__anillo span {
+  display: grid;
+  place-items: center;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff;
+  color: #203c36;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* TOMAR ASISTENCIA */
+
+.toma-asistencia {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.toma-asistencia>.field {
+  min-width: 0;
+}
+
+.toma-asistencia>.field>.field__input {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.toma-asistencia__columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+  align-items: stretch;
+  gap: 16px;
+}
+
+.toma-asistencia__panel {
+  display: grid;
+  align-content: start;
+  justify-items: stretch;
+  gap: 16px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #dfe9e5;
+  border-radius: 14px;
+  background: #fff;
+  color: #203c36;
+  box-shadow: 0 3px 12px rgb(26 64 51 / 7%);
+}
+
+.toma-asistencia__panel h2,
+.toma-asistencia__panel p {
+  margin: 0;
+}
+
+.toma-asistencia__panel h2 {
+  font-size: 1.125rem;
+}
+
+.toma-asistencia__panel>div>strong+p {
+  margin-top: 4px;
+  color: #637970;
+  font-size: 0.875rem;
+}
+
+.toma-asistencia__preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #edf9f6;
+  color: #203c36;
+  text-align: center;
+}
+
+.toma-asistencia__preview>div {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: #637970;
+}
+
+.toma-asistencia__preview svg {
+  color: #488f80;
+}
+
+.toma-asistencia__preview video[hidden] {
+  display: none;
+}
+
+.toma-asistencia__preview video:not([hidden]) {
+  display: block;
+  width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+  background: #203c36;
+  transform: scaleX(-1);
+}
+
+.toma-asistencia__controles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toma-asistencia__resultado {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #edf9f6;
+  color: #203c36;
+}
+
+.toma-asistencia__resultado--registrada {
+  background: #e4f6ee;
+  color: #216657;
+}
+
+.toma-asistencia__resultado--sin_coincidencia {
+  background: #fff4db;
+  color: #674d16;
+}
+
+.toma-asistencia__resultado p {
+  margin: 4px 0 0;
+}
+
+.page__actions.mis-clases__regreso.toma-asistencia__pie {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* PANTALLAS PEQUEÑAS */
+
+@media (max-width: 760px) {
+
+  .asistencias-profesor__filtros,
+  .asistencias-profesor__detalle,
+  .toma-asistencia__columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toma-asistencia__panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .asistencias-profesor__alumno {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+
+  .asistencias-profesor__alumno>strong {
+    grid-column: 1 / -1;
+  }
+}
+
+.page__actions.toma-asistencia__pie {
+  justify-content: space-between;
+}
+
+/* CSSSSSS ASISTENCIA */
+
+.asistencia-estado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.asistencia-estado--presente {
+  background: #e0f5e9;
+  color: #166534;
+}
+
+.asistencia-estado--falta {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.asistencia-estado--pendiente {
+  background: #fff4db;
+  color: #854d0e;
+}

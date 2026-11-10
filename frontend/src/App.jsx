@@ -19,6 +19,8 @@ import ClasesPage from "./pages/ClasesPage";
 import ClaseCrearPage from "./pages/ClaseCrearPage";
 import ClaseEditarPage from "./pages/ClaseEditarPage";
 import MisClasesPage from "./pages/MisClasesPage";
+import TomarAsistenciaPage from "./pages/TomarAsistenciaPage";
+import AsistenciasProfesorPage from "./pages/AsistenciasProfesorPage";
 
 function Inicio() {
   const { usuario } = useAuth();
@@ -36,20 +38,6 @@ function Inicio() {
       }
       replace
     />
-  );
-}
-
-function ClasesBase() {
-  return (
-    <section className="page">
-      <header>
-        <h1 className="page__title">Clases</h1>
-
-        <p className="page__description">
-          Consulta tus clases y sus alumnos inscritos.
-        </p>
-      </header>
-    </section>
   );
 }
 
@@ -90,15 +78,47 @@ export default function App() {
           <Route path="clases" element={<ClasesPage />} />
           <Route path="clases/crear" element={<ClaseCrearPage />} />
           <Route path="clases/:claseId/editar" element={<ClaseEditarPage />} />
+          <Route
+            path="asistencias"
+            element={<AsistenciasProfesorPage administrador />}
+          />
+
+          <Route
+            path="asistencias/sesiones/:sesionId"
+            element={<AsistenciasProfesorPage administrador />}
+          />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["profesor"]} />}>
         <Route path="/profesor" element={<AppLayout />}>
           <Route index element={<Navigate to="clases" replace />} />
+
           <Route path="clases" element={<MisClasesPage />} />
-          <Route path="clases" element={<MisClasesPage />} />
+
           <Route path="clases/:claseId" element={<MisClasesPage />} />
+
+          <Route
+            path="clases/:claseId/asistencia"
+            element={<TomarAsistenciaPage />}
+          />
+
+          <Route path="asistencias" element={<AsistenciasProfesorPage />} />
+
+          <Route
+            path="asistencias/tomar"
+            element={<MisClasesPage modoAsistencia />}
+          />
+
+          <Route
+            path="asistencias/:claseId"
+            element={<TomarAsistenciaPage />}
+          />
+
+          <Route
+            path="asistencias/sesiones/:sesionId"
+            element={<AsistenciasProfesorPage />}
+          />
         </Route>
       </Route>
 
