@@ -68,6 +68,8 @@ function SesionAsistencia({ claseId }) {
 
   const [sesion, setSesion] = useState(null);
   const [camaraActiva, setCamaraActiva] = useState(false);
+  const [camaras, setCamaras] = useState([]);
+  const [camaraId, setCamaraId] = useState("");
   const [operacion, setOperacion] = useState("");
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
@@ -156,8 +158,10 @@ function SesionAsistencia({ claseId }) {
     }
   }
 
-  async function activarCamara() {
+  async function activarCamara(dispositivoId = "") {
     if (!sesionAbierta || ocupado) return;
+
+    apagarCamara();
 
     const solicitud = ++solicitudCamara.current;
 
@@ -170,7 +174,7 @@ function SesionAsistencia({ claseId }) {
       }
 
       const flujo = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: dispositivoId ? { deviceId: { exact: dispositivoId } } : true,
         audio: false,
       });
 
@@ -185,8 +189,23 @@ function SesionAsistencia({ claseId }) {
       video.srcObject = flujo;
       await video.play();
 
-      if (solicitud === solicitudCamara.current) {
-        setCamaraActiva(true);
+      if (solicitud !== solicitudCamara.current) return;
+
+      setCamaraActiva(true);
+      setCamaraId(flujo.getVideoTracks()[0]?.getSettings().deviceId || "");
+
+      try {
+        const dispositivos = await navigator.mediaDevices.enumerateDevices();
+
+        if (solicitud === solicitudCamara.current) {
+          setCamaras(
+            dispositivos.filter(
+              (dispositivo) => dispositivo.kind === "videoinput"
+            )
+          );
+        }
+      } catch {
+        // Si falla el listado, la cámara activa sigue funcionando.
       }
     } catch (error) {
       if (solicitud !== solicitudCamara.current) return;
@@ -327,10 +346,28 @@ function SesionAsistencia({ claseId }) {
                   type="button"
                   variant="secondary"
                   disabled={ocupado}
-                  onClick={activarCamara}
+                  onClick={() => activarCamara()}
                 >
                   Activar cámara
                 </Button>
+              )}
+
+              {sesionAbierta && camaras.length > 1 && (
+                <label className="field">
+                  <span className="field__label">Cámara</span>
+                  <select
+                    className="field__input"
+                    value={camaraId}
+                    disabled={ocupado}
+                    onChange={(evento) => activarCamara(evento.target.value)}
+                  >
+                    {camaras.map((camara, indice) => (
+                      <option key={camara.deviceId} value={camara.deviceId}>
+                        {camara.label || `Cámara ${indice + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               )}
 
               {sesionAbierta && (
